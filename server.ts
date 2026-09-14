@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
 import dotenv from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
@@ -69,6 +70,32 @@ async function startServer() {
       server: { middlewareMode: true },
       appType: 'spa',
     });
+
+    // Explicit SPA HTML handler placed before vite.middlewares so any client route (/admin, /login, etc.)
+    // always returns index.html and never throws a 404
+    app.use(async (req, res, next) => {
+      if (req.method !== 'GET') return next();
+      // Skip API endpoints, Vite internal modules, and static files with extensions
+      if (
+        req.path.startsWith('/api') ||
+        req.path.startsWith('/@') ||
+        req.path.startsWith('/src') ||
+        req.path.startsWith('/node_modules') ||
+        path.extname(req.path) !== ''
+      ) {
+        return next();
+      }
+
+      try {
+        const indexPath = path.resolve(process.cwd(), 'index.html');
+        let template = fs.readFileSync(indexPath, 'utf-8');
+        template = await vite.transformIndexHtml(req.originalUrl, template);
+        return res.status(200).set({ 'Content-Type': 'text/html; charset=utf-8' }).end(template);
+      } catch (e) {
+        next(e);
+      }
+    });
+
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');

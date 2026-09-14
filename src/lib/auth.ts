@@ -93,6 +93,15 @@ export const loginAdmin = async (email: string, password: string): Promise<{ suc
   return { success: true };
 };
 
+export const loginDemoAdmin = async (): Promise<void> => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(LOCAL_ADMIN_KEY, JSON.stringify({
+      email: 'admin@portfolio.demo',
+      id: 'demo-admin-' + Date.now()
+    }));
+  }
+};
+
 export const logoutAdmin = async (): Promise<void> => {
   const supabase = getSupabaseClient();
   if (supabase && isSupabaseConfigured()) {

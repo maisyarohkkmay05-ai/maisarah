@@ -21,7 +21,7 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Check URL route for /admin or #/admin or ?admin=true
+  // Check URL route for /admin, /login, #/admin, #/login, ?admin=true, ?login=true, or Supabase Auth redirects
   const checkRoute = () => {
     if (typeof window === 'undefined') return;
     const path = window.location.pathname.toLowerCase();
@@ -29,11 +29,32 @@ export default function App() {
     const searchParams = new URLSearchParams(window.location.search);
     
     const isAdmin = 
-      path.startsWith('/admin') || 
+      path === '/admin' || 
+      path.startsWith('/admin/') || 
+      path === '/login' || 
+      path.startsWith('/login/') || 
+      path === '/auth' || 
+      path.startsWith('/auth/') || 
+      path === '/signin' || 
+      path.startsWith('/signin/') || 
       hash.startsWith('#/admin') || 
-      hash.startsWith('#admin') ||
+      hash.startsWith('#admin') || 
+      hash.startsWith('#/login') || 
+      hash.startsWith('#login') || 
+      hash.startsWith('#/auth') || 
+      hash.startsWith('#auth') || 
+      hash.startsWith('#/signin') || 
+      hash.startsWith('#signin') || 
+      hash.includes('access_token=') ||
+      hash.includes('type=signup') ||
+      hash.includes('type=invite') ||
+      hash.includes('type=recovery') ||
+      hash.includes('type=magiclink') ||
       searchParams.get('page') === 'admin' ||
-      searchParams.get('admin') === 'true';
+      searchParams.get('page') === 'login' ||
+      searchParams.get('page') === 'auth' ||
+      searchParams.get('admin') === 'true' ||
+      searchParams.get('login') === 'true';
 
     setIsAdminRoute(isAdmin);
   };
@@ -57,6 +78,15 @@ export default function App() {
     window.addEventListener('popstate', checkRoute);
     window.addEventListener('hashchange', checkRoute);
 
+    // Keyboard shortcut to open Admin: Ctrl+Shift+A or Cmd+Shift+A
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+        e.preventDefault();
+        navigateToAdmin();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
     const init = async () => {
       await Promise.all([loadData(), checkAuth()]);
       setLoading(false);
@@ -71,6 +101,7 @@ export default function App() {
     return () => {
       window.removeEventListener('popstate', checkRoute);
       window.removeEventListener('hashchange', checkRoute);
+      window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('portfolio-data-updated', handleDataUpdate);
     };
   }, []);
@@ -167,8 +198,8 @@ export default function App() {
         <ContactSection contacts={data.contacts} profile={data.profile} />
       </main>
 
-      {/* Footer */}
-      <Footer profile={data.profile} />
+      {/* Footer (Klik copyright untuk akses langsung admin) */}
+      <Footer profile={data.profile} onAdminTrigger={navigateToAdmin} />
     </div>
   );
 }
