@@ -1,0 +1,6 @@
+{
+  "name": "Website Portofolio Pribadi",
+  "description": "Website portofolio pribadi serba guna dengan halaman admin terproteksi untuk kelola profil, keahlian, project, pengalaman, pelatihan, bahasa, dan kontak.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
